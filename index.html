@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Household Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: deadpan, dry, a little smug: a bank statement for your relationship
+   IDEA: a thermal-paper receipt printed by the "household till"
+   PICTURE: the receipt itself, torn edges, feeding out of a lime slot
+   COLOUR and TYPE: Boge brand: near-black ground, lime #BBF77F accent, white paper; Inter throughout
+   LAYOUT: one centred column: title, quiz card, then the receipt replaces it */
+:root{color-scheme:dark;--bg:#0f1110;--card:#181b19;--line:#2a2f2c;--ink:#f2f4f1;--mute:#9aa29c;--lime:#BBF77F;--paper:#fbfbf6;--pink:#ff7a9c}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:clamp(28px,5vw,64px) 18px 48px}
+.tag{display:inline-flex;align-items:center;gap:8px;color:var(--lime);font-weight:500;font-size:14px}
+h1{font-weight:900;font-size:clamp(34px,7vw,52px);line-height:1.02;margin:14px 0 12px;text-wrap:balance;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--lime)}
+.lead{color:var(--mute);margin:0 0 28px;max-width:52ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,32px)}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.bar b{display:block;height:100%;background:var(--lime);width:0;transition:width .35s ease}
+.step{color:var(--mute);font-size:14px;margin-bottom:6px}
+.q{font-weight:800;font-size:clamp(22px,4.4vw,28px);line-height:1.15;margin:0 0 20px;text-wrap:balance}
+.opts{display:grid;gap:10px}
+.opt{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:52px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:#121413;font-size:16px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#4a524d}
+.opt:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.opt.on{border-color:var(--lime);background:#1e2619}
+.opt span{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #4a524d;display:grid;place-items:center}
+.opt.on span{border-color:var(--lime)}
+.opt.on span::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--lime)}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.btn{all:unset;cursor:pointer;min-height:48px;padding:0 22px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;text-align:center}
+.btn:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.pri{background:var(--lime);color:#0f1110}
+.pri[disabled]{opacity:.35;cursor:not-allowed}
+.ghost{border:1px solid var(--line);color:var(--ink)}
+.ghost:hover{border-color:#4a524d}
+.ghost[hidden]{display:none}
+/* receipt */
+.till{position:relative;padding-top:16px}
+.slot{height:16px;border-radius:10px;background:#050605;border:2px solid var(--lime);box-shadow:0 0 24px rgba(187,247,127,.25);position:absolute;top:0;left:-6px;right:-6px;z-index:2}
+.clip{overflow:hidden;margin:0 6px}
+.rc{background:var(--paper);color:#151715;font:14px/1.5 Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:30px clamp(16px,5vw,30px) 34px;position:relative;transform:translateY(-100%);
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 10px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/16px 10px repeat-x;
+  mask:linear-gradient(#000 0 0) top/100% calc(100% - 10px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/16px 10px repeat-x}
+.rc.go{animation:feed 1.6s steps(24) forwards}
+@keyframes feed{to{transform:none}}
+@media(prefers-reduced-motion:reduce){.rc.go{animation:none;transform:none}}
+.rc h2{font:900 22px/1.1 Inter,sans-serif;text-align:center;margin:0 0 4px;letter-spacing:.01em}
+.rc .c{text-align:center}
+.rc .sm{font-size:12px;color:#5d635f}
+.hr{border:0;border-top:1.5px dashed #9aa09b;margin:14px 0}
+.ln{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;margin:9px 0}
+.ln .d{font-size:12px;color:#5d635f}
+.ln .p{text-align:right;white-space:nowrap;font-weight:700}
+.ln .p.cr{color:#2f7a12}
+.sub{display:flex;justify-content:space-between;gap:12px;margin:4px 0}
+.sub b{white-space:nowrap}
+.tot{background:#151715;color:var(--lime);border-radius:10px;padding:14px 16px;margin:14px 0 6px;text-align:center}
+.tot .k{font-size:12px;color:#c9cfca}
+.tot .v{font:900 clamp(30px,8vw,40px)/1.1 Inter,sans-serif;white-space:nowrap}
+.verdict{font-weight:700;text-align:center;margin:10px 0 0}
+.code{display:flex;justify-content:center;gap:2px;height:44px;margin:16px auto 6px;max-width:260px}
+.code i{background:#151715;flex:1}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.acts .btn{flex:1 1 160px}
+.note{color:var(--mute);font-size:14px;margin:12px 0 0;min-height:22px}
+footer{margin-top:42px;color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:18px}
+footer b{color:var(--ink)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+</head>
+<body>
+<main class="wrap">
+  <div class="tag">The household till is open</div>
+  <h1>How much do you <em>owe</em> your wife?</h1>
+  <p class="lead">Eight honest questions. One itemised receipt. Prices are set by the market and change every time. And yes, sometimes she owes you.</p>
+
+  <section class="card" id="quiz" aria-live="polite">
+    <div class="bar"><b id="prog"></b></div>
+    <div class="step" id="step"></div>
+    <h2 class="q" id="q"></h2>
+    <div class="opts" id="opts" role="radiogroup"></div>
+    <div class="nav">
+      <button class="btn ghost" id="back" type="button">Back</button>
+      <button class="btn pri" id="next" type="button" disabled>Next</button>
+    </div>
+  </section>
+
+  <section id="out" hidden>
+    <div class="till"><div class="slot"></div><div class="clip"><div class="rc" id="rc"></div></div></div>
+    <div class="acts">
+      <button class="btn pri" id="again" type="button">Reprint with new prices</button>
+      <button class="btn ghost" id="copy" type="button">Copy receipt image</button>
+      <button class="btn ghost" id="restart" type="button">Start over</button>
+    </div>
+    <p class="note" id="note">Tip: screenshot the receipt and post it to your stories.</p>
+  </section>
+
+  <footer><span>A very serious financial tool by <b>Boge Design</b></span><span>Not legal or marital advice.</span></footer>
+</main>
+
+<script>
+{
+// s: "them" = she did it, you owe; "me" = you did it, credit; "even" = no charge
+const Q=[
+ {q:"How much quality time do you two actually spend together each week?",o:[
+  {t:"Barely any. We wave in the hallway.",i:"Missed date nights",n:[3,6],p:[30,60],s:"them"},
+  {t:"A few evenings, phones mostly down",i:"Quality time, standard plan",n:[1,1],p:[0,0],s:"even"},
+  {t:"Loads. I plan the dates.",i:"Date planning services",n:[3,5],p:[25,45],s:"me"}]},
+ {q:"How many kids are in the house?",o:[
+  {t:"None yet",i:"Kid-free surcharge waiver",n:[1,1],p:[0,0],s:"even"},
+  {t:"One",i:"Bedtime routines, mostly hers",n:[20,30],p:[4,8],s:"them"},
+  {t:"Two or more",i:"Bedtime routines, mostly hers",n:[40,60],p:[4,8],s:"them"},
+  {t:"Some, and I do the bedtimes",i:"Bedtime routines, by you",n:[20,40],p:[4,8],s:"me"}]},
+ {q:"Who wakes up when the kids (or the dog) need something at night?",o:[
+  {t:"She does. I 'don't hear it'.",i:"Night shifts",n:[6,14],p:[12,25],s:"them"},
+  {t:"I do",i:"Night shifts",n:[6,14],p:[12,25],s:"me"},
+  {t:"Nobody needs anything at night",i:"Uninterrupted sleep",n:[1,1],p:[0,0],s:"even"}]},
+ {q:"How many times a week does she cook?",o:[
+  {t:"Every day",i:"Home-cooked dinners",n:[6,7],p:[14,24],s:"them"},
+  {t:"A few times",i:"Home-cooked dinners",n:[2,4],p:[14,24],s:"them"},
+  {t:"Never, I'm the cook",i:"Chef's services rendered",n:[5,7],p:[14,24],s:"me"},
+  {t:"We live on delivery",i:"Delivery fees, shared guilt",n:[3,6],p:[6,9],s:"even"}]},
+ {q:"And who washes the dishes after?",o:[
+  {t:"She does",i:"Dish duty, full service",n:[20,30],p:[3,6],s:"them"},
+  {t:"I do, loudly",i:"Dishes (incl. dramatic sighs)",n:[20,30],p:[3,6],s:"me"},
+  {t:"The dishwasher, and we argue about loading it",i:"Dishwasher loading dispute",n:[4,9],p:[5,12],s:"them"}]},
+ {q:"Who earns more?",o:[
+  {t:"I do",i:"Main income contribution",n:[1,1],p:[150,400],s:"me"},
+  {t:"She does",i:"Main income contribution",n:[1,1],p:[150,400],s:"them"},
+  {t:"About the same",i:"Equal earnings",n:[1,1],p:[0,0],s:"even"}]},
+ {q:"Who cleans the house?",o:[
+  {t:"Her, mostly",i:"Cleaning shifts",n:[8,16],p:[10,20],s:"them"},
+  {t:"Me, mostly",i:"Cleaning shifts",n:[8,16],p:[10,20],s:"me"},
+  {t:"We split it, or pay someone",i:"Cleaning, fairly split",n:[1,1],p:[0,0],s:"even"}]},
+ {q:"Whose mother visits more often?",o:[
+  {t:"Mine",i:"Mother-in-law hosting fee",n:[4,10],p:[20,45],s:"them"},
+  {t:"Hers",i:"Mother-in-law hosting fee",n:[4,10],p:[20,45],s:"me"},
+  {t:"Both, equally often",i:"Parent visits, balanced",n:[1,1],p:[0,0],s:"even"}]}
+];
+const WILD=[["Blanket theft, overnight",[10,40]],["Emotional support, premium tier",[20,60]],["Listening to the same story twice",[5,15]],["Remote control monopoly",[8,20]],["Last slice, eaten without asking",[6,14]],["Free proofreading of your texts",[5,12]]];
+
+const $=id=>document.getElementById(id);
+const ans=Array(Q.length).fill(null);let cur=0,lastText="";
+const r=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.round(r(a,b));
+const eur=v=>(v<0?"−":"")+"€"+Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+
+function show(){
+  const q=Q[cur];
+  $("prog").style.width=(cur/Q.length*100)+"%";
+  $("step").textContent=`Question ${cur+1} of ${Q.length}`;
+  $("q").textContent=q.q;
+  $("opts").innerHTML=q.o.map((o,i)=>`<button type="button" role="radio" aria-checked="${ans[cur]===i}" class="opt${ans[cur]===i?" on":""}" data-i="${i}"><span></span>${o.t}</button>`).join("");
+  $("back").hidden=cur===0;
+  $("next").disabled=ans[cur]===null;
+  $("next").textContent=cur===Q.length-1?"Print my receipt":"Next";
+}
+$("opts").addEventListener("click",e=>{
+  const b=e.target.closest(".opt");if(!b)return;
+  ans[cur]=+b.dataset.i;show();
+  setTimeout(()=>{if(cur<Q.length-1){cur++;show()}},220);
+});
+$("back").onclick=()=>{if(cur>0){cur--;show()}};
+$("next").onclick=()=>{if(ans[cur]===null)return;if(cur<Q.length-1){cur++;show()}else print()};
+
+function print(){
+  $("prog").style.width="100%";
+  const lines=[];
+  Q.forEach((q,k)=>{
+    const o=q.o[ans[k]],n=ri(o.n[0],o.n[1]),p=+r(o.p[0],o.p[1]).toFixed(2);
+    const amt=o.s==="even"?0:(o.s==="me"?-1:1)*n*p;
+    lines.push({i:o.i,n,p,amt,s:o.s});
+  });
+  const w=WILD[ri(0,WILD.length-1)],ws=Math.random()<.5?1:-1,wp=+r(w[1][0],w[1][1]).toFixed(2);
+  lines.push({i:w[0]+(ws>0?" (hers)":" (yours)"),n:1,p:wp,amt:ws*wp,s:ws>0?"them":"me"});
+  const owed=lines.filter(l=>l.amt>0).reduce((a,l)=>a+l.amt,0);
+  const cred=lines.filter(l=>l.amt<0).reduce((a,l)=>a+l.amt,0);
+  const tax=+(owed*.07).toFixed(2);
+  const tot=owed+tax+cred;
+  const even=Math.abs(tot)<15;
+  const head=even?"You're even. Suspicious.":tot>0?"You owe your wife":"Your wife owes you";
+  const verdict=even?"Perfect balance. Frame this receipt.":tot>0?(tot>1500?"Recommended payment: breakfast in bed, for a month.":"Recommended payment: flowers and doing the dishes tonight."):"Collect calmly. Do not show this at dinner.";
+  const d=new Date(),no=String(ri(1000,9999));
+  $("rc").innerHTML=`
+   <h2>HOUSEHOLD TILL</h2>
+   <div class="c sm">Fair-ish trade since forever<br>${d.toLocaleDateString("en-GB")} · ${d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})} · Receipt #${no}</div>
+   <hr class="hr">
+   ${lines.map(l=>`<div class="ln"><div>${l.i}<div class="d">${l.s==="even"?"no charge":l.n+" × "+eur(l.p)}</div></div><div class="p${l.amt<0?" cr":""}">${l.s==="even"?"€0.00":eur(l.amt)}</div></div>`).join("")}
+   <hr class="hr">
+   <div class="sub"><span>Her contributions</span><b>${eur(owed)}</b></div>
+   <div class="sub"><span>Emotional labour tax 7%</span><b>${eur(tax)}</b></div>
+   <div class="sub"><span>Your credits</span><b>${eur(cred)}</b></div>
+   <div class="tot"><div class="k">${head}</div><div class="v">${even?"€0.00":eur(Math.abs(tot))}</div></div>
+   <p class="verdict">${verdict}</p>
+   <div class="code">${Array.from({length:38},()=>`<i style="flex:${ri(1,4)};opacity:${Math.random()<.25?0:1}"></i>`).join("")}</div>
+   <div class="c sm">No refunds. No exchanges. Hugs accepted.</div>`;
+  lastText=["HOUSEHOLD TILL · Receipt #"+no,"",...lines.map(l=>`${l.i}: ${l.s==="even"?"€0.00":eur(l.amt)}`),"",`Emotional labour tax 7%: ${eur(tax)}`,`${head}: ${even?"€0.00":eur(Math.abs(tot))}`,verdict].join("\n");
+  $("quiz").hidden=true;$("out").hidden=false;
+  const rc=$("rc");rc.classList.remove("go");void rc.offsetWidth;rc.classList.add("go");
+  $("note").textContent="Tip: screenshot the receipt and post it to your stories.";
+  $("out").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("again").onclick=print;
+$("restart").onclick=()=>{ans.fill(null);cur=0;$("out").hidden=true;$("quiz").hidden=false;show();window.scrollTo({top:0,behavior:"smooth"})};
+const makePng=()=>{
+  if(!window.html2canvas)return Promise.reject(new Error("no renderer"));
+  return html2canvas($("rc"),{backgroundColor:"#fbfbf6",scale:2,logging:false})
+    .then(c=>new Promise((ok,no)=>c.toBlob(b=>b?ok(b):no(new Error("blob")),"image/png")));
+};
+$("copy").onclick=async()=>{
+  const note=$("note");note.textContent="Copying the receipt…";
+  try{
+    if(!window.ClipboardItem||!navigator.clipboard||!navigator.clipboard.write)throw new Error("no image clipboard");
+    // pass the promise straight in so Safari keeps the click permission
+    await navigator.clipboard.write([new ClipboardItem({"image/png":makePng()})]);
+    note.textContent="Receipt image copied. Paste it into a chat or your story.";
+  }catch(e){
+    try{await navigator.clipboard.writeText(lastText);note.textContent="Couldn't copy the image here, so the text was copied instead."}
+    catch(e2){note.textContent="Couldn't copy here. Take a screenshot instead."}
+  }
+};
+show();
+}
+</script>
+</body>
+</html>
